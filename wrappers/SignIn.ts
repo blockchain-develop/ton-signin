@@ -1,29 +1,32 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
 
-export type SignInConfig = {};
-
-export function signInConfigToCell(config: SignInConfig): Cell {
-    return beginCell().endCell();
-}
-
 export class SignIn implements Contract {
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
+    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) { }
 
-    static createFromAddress(address: Address) {
-        return new SignIn(address);
-    }
-
-    static createFromConfig(config: SignInConfig, code: Cell, workchain = 0) {
-        const data = signInConfigToCell(config);
-        const init = { code, data };
-        return new SignIn(contractAddress(workchain, init), init);
-    }
-
-    async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
+    async sendDeploy(provider: ContractProvider, via: Sender) {
         await provider.internal(via, {
-            value,
-            sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell().endCell(),
+            value: "0.01",
+            bounce: false,
+        });
+    }
+
+    static createForDeploy(code: Cell, iniitalCounterValue: number): SignIn {
+        const data = beginCell().storeUint(iniitalCounterValue, 64).endCell();
+        const workchain = 0;
+        const address = contractAddress(workchain, { code, data });
+        return new SignIn(address, { code, data });
+    }
+
+    async getCounter(provider: ContractProvider) {
+        const { stack } = await provider.get("counter", []);
+        return stack.readBigNumber();
+    }
+
+    async sendIncrement(provider: ContractProvider, via: Sender) {
+        const messageBoby = beginCell().storeUint(1, 32).storeUint(0, 64).endCell();
+        await provider.internal(via, {
+            value: "0.002",
+            body: messageBoby
         });
     }
 }

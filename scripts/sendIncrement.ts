@@ -1,22 +1,12 @@
-import * as fs from "fs";
-import { SignIn } from '../wrappers/SignIn';
-import { getHttpEndpoint } from '@orbs-network/ton-access';
-import { TonClient, Cell, WalletContractV4 } from '@ton/ton';
+import { getHttpEndpoint } from "@orbs-network/ton-access";
 import { mnemonicToWalletKey } from "ton-crypto";
+import { TonClient, WalletContractV4, Address } from "@ton/ton";
+import { SignIn } from "../wrappers/SignIn";
+
 
 export async function run() {
-    console.log("xxxx")
     const endpoint = await getHttpEndpoint({ network: "testnet" });
     const client = new TonClient({ endpoint });
-
-    const counterCode = Cell.fromBoc(fs.readFileSync("build/sign_in.cell"))[0];
-    const initialCounterValue = Date.now();
-    const sign_in = SignIn.createForDeploy(counterCode, initialCounterValue);
-
-    console.log("contract address: ", sign_in.address.toString());
-    if (await client.isContractDeployed(sign_in.address)) {
-        return console.log("sign in alread deployed");
-    }
 
     const mnemonic = "best wild client roof marble core current property surface zebra have fortune neutral away wolf tag prize flavor garment tip era auction miss nothing";
     const key = await mnemonicToWalletKey(mnemonic.split(" "));
@@ -29,16 +19,19 @@ export async function run() {
     const walletSender = walletContract.sender(key.secretKey);
     const seqno = await walletContract.getSeqno();
 
-    const signInContract = client.open(sign_in);
-    await signInContract.sendDeploy(walletSender);
+    const signinAddress = Address.parse("EQBx0-Xsf881CLQTENX4qkcpArIVgEv2Aj4VzZcdfOERjZFs");
+    const signin = new SignIn(signinAddress);
+    const signinContract = client.open(signin);
+
+    await signinContract.sendIncrement(walletSender);
 
     let currentSeqno = seqno;
     while (currentSeqno == seqno) {
-        console.log("waiting for deploy transaction to confirm......");
+        console.log("waiting for transaction to confirm...");
         await sleep(1500);
         currentSeqno = await walletContract.getSeqno();
     }
-    console.log("deploy transaction confirmed!");
+    console.log("transaction confirmed!");
 }
 
 function sleep(ms: number) {
