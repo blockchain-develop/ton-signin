@@ -1,5 +1,7 @@
 #include "imports/stdlib.fc";
 
+int op::excesses() asm "0xd53276db PUSHINT";
+
 cell load_data() inline {
     cell data = get_data();
     slice ds = data.begin_parse();
@@ -17,23 +19,55 @@ cell load_data() inline {
     int op = in_msg_body~load_uint(32);
     int query_id = in_msg_body~load_uint(64);
     int user_id = in_msg_body~load_uint(64);
+    int now = now() / (24 * 60 * 60); ;; day
 
     cell data = get_data();
     slice ds = data.begin_parse();
     cell dic = ds.slice_bits() == 0 ? new_dict() : data;
     
-    if (op == 1) {
-        dic~udict_set(64,user_id,in_msg_body);
-        set_data(dic);
-        return();
+    int user_signin_latest = 0;
+    int user_signin_counter = 0;
+    (slice payload, int success) = dic.udict_get?(64, user_id);
+    if (success) {
+        user_signin_counter = payload~load_uint(64);
+        user_signin_latest = payload~load_uint(64);
     }
+    throw_unless(98, user_signin_latest < now);
+
+    user_signin_counter += 1;
+    user_signin_latest = now;
+    slice msg = begin_cell().store_uint(user_signin_counter, 64).store_uint(user_signin_latest, 64).end_cell().begin_parse();
+    dic~udict_set(64, user_id, msg);
+    set_data(dic);
+
+    ;; refund ton
+    slice cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) {
+        return ();
+    }
+    slice sender_address = cs~load_msg_addr();
+    slice response_address = sender_address;
+    if ((response_address.preload_uint(2) != 0) & (msg_value > 0)) {
+        var refund = begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(response_address)
+        .store_coins(msg_value)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_uint(op::excesses(), 32)
+        .store_uint(query_id, 64)
+        .end_cell();
+        send_raw_message(refund, 2);
+    }
+    return();
 }
 
-(int) get_user(int id) method_id {
+(int, int) get_user_signin(int id) method_id {
     cell dic = load_data();
     (slice payload, int success) = dic.udict_get?(64,id);
     throw_unless(98, success);
 
-    int valid_until = payload~load_uint(64);
-    return (valid_until);
+    int user_signin_counter = payload~load_uint(64);
+    int user_signin_latest = payload~load_uint(64);
+    return (user_signin_counter, user_signin_latest);
 }

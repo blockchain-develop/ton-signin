@@ -17,13 +17,13 @@ export class SignIn implements Contract {
         return new SignIn(address, { code, data });
     }
 
-    async getByKey(provider: ContractProvider, key: bigint) {
-        const { stack } = await provider.get("get_user", [{ type: "int", value: key }]);
-        return stack.readBigNumber();
+    async getUserSignIn(provider: ContractProvider, key: bigint) {
+        const { stack } = await provider.get("get_user_signin", [{ type: "int", value: key }]);
+        return [stack.readBigNumber(), stack.readBigNumber()];
     }
 
-    async sendSet(provider: ContractProvider, via: Sender, query_id: bigint, key: bigint, value: bigint) {
-        const messageBoby = beginCell().storeUint(1, 32).storeUint(query_id, 64).storeUint(key, 64).storeUint(value, 64).endCell();
+    async sendSignIn(provider: ContractProvider, via: Sender, query_id: bigint, key: bigint) {
+        const messageBoby = beginCell().storeUint(1, 32).storeUint(query_id, 64).storeUint(key, 64).endCell();
         await provider.internal(via, {
             value: "0.002",
             sendMode: SendMode.PAY_GAS_SEPARATELY,
