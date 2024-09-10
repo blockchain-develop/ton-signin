@@ -5,13 +5,11 @@ import { TonClient, Cell, WalletContractV4 } from '@ton/ton';
 import { mnemonicToWalletKey } from "ton-crypto";
 
 export async function run() {
-    console.log("xxxx")
     const endpoint = await getHttpEndpoint({ network: "testnet" });
     const client = new TonClient({ endpoint });
 
     const counterCode = Cell.fromBoc(fs.readFileSync("build/sign_in.cell"))[0];
-    const initialCounterValue = Date.now();
-    const sign_in = SignIn.createForDeploy(counterCode, initialCounterValue);
+    const sign_in = SignIn.createForDeploy(counterCode);
 
     console.log("contract address: ", sign_in.address.toString());
     if (await client.isContractDeployed(sign_in.address)) {

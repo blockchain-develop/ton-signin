@@ -6,11 +6,11 @@ export async function run() {
     const endpoint = await getHttpEndpoint({ network: "testnet" });
     const client = new TonClient({ endpoint });
 
-    const signinAddress = Address.parse("EQBx0-Xsf881CLQTENX4qkcpArIVgEv2Aj4VzZcdfOERjZFs");
+    const signinAddress = Address.parse("EQB5t08Dc_5tWS644xcceuSaw7G9Zv0-l_0q5cujaSF3YCeh");
     const signin = new SignIn(signinAddress);
     const signinContract = client.open(signin);
 
-    const signinValue = await signinContract.getCounter();
+    const signinValue = await signinContract.getByKey(10000n);
     console.log("value: ", signinValue.toString());
 }
 

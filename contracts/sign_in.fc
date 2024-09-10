@@ -1,12 +1,13 @@
 #include "imports/stdlib.fc";
 
-(int) load_data() inline {
-    var ds = get_data().begin_parse();
-    return (ds~load_uint(64));
-}
-
-() save_data(int counter) impure inline {
-    set_data(begin_cell().store_uint(counter, 64).end_cell());
+cell load_data() inline {
+    cell data = get_data();
+    slice ds = data.begin_parse();
+    if (ds.slice_bits() == 0) {
+        return new_dict();
+    } else {
+        return data;
+    }
 }
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
@@ -14,13 +15,25 @@
         return ();
     }
     int op = in_msg_body~load_uint(32);
-    var (counter) = load_data();
+    int query_id = in_msg_body~load_uint(64);
+    int user_id = in_msg_body~load_uint(64);
+
+    cell data = get_data();
+    slice ds = data.begin_parse();
+    cell dic = ds.slice_bits() == 0 ? new_dict() : data;
+    
     if (op == 1) {
-        save_data(counter + 1);
+        dic~udict_set(64,user_id,in_msg_body);
+        set_data(dic);
+        return();
     }
 }
 
-int counter() method_id {
-    var (counter) = load_data();
-    return counter;
+(int) get_user(int id) method_id {
+    cell dic = load_data();
+    (slice payload, int success) = dic.udict_get?(64,id);
+    throw_unless(98, success);
+
+    int valid_until = payload~load_uint(64);
+    return (valid_until);
 }

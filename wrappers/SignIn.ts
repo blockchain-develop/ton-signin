@@ -10,22 +10,23 @@ export class SignIn implements Contract {
         });
     }
 
-    static createForDeploy(code: Cell, iniitalCounterValue: number): SignIn {
-        const data = beginCell().storeUint(iniitalCounterValue, 64).endCell();
+    static createForDeploy(code: Cell): SignIn {
+        const data = beginCell().endCell();
         const workchain = 0;
         const address = contractAddress(workchain, { code, data });
         return new SignIn(address, { code, data });
     }
 
-    async getCounter(provider: ContractProvider) {
-        const { stack } = await provider.get("counter", []);
+    async getByKey(provider: ContractProvider, key: bigint) {
+        const { stack } = await provider.get("get_user", [{ type: "int", value: key }]);
         return stack.readBigNumber();
     }
 
-    async sendIncrement(provider: ContractProvider, via: Sender) {
-        const messageBoby = beginCell().storeUint(1, 32).storeUint(0, 64).endCell();
+    async sendSet(provider: ContractProvider, via: Sender, query_id: bigint, key: bigint, value: bigint) {
+        const messageBoby = beginCell().storeUint(1, 32).storeUint(query_id, 64).storeUint(key, 64).storeUint(value, 64).endCell();
         await provider.internal(via, {
             value: "0.002",
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: messageBoby
         });
     }
