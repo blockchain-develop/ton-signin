@@ -11,16 +11,16 @@
 
 ### Build
 
-`npx blueprint build` or `yarn blueprint build`
-
-### Test
-
-`npx blueprint test` or `yarn blueprint test`
+`npx func-js contracts/sign_in.fc --boc build/sign_in.cell`
 
 ### Deploy or run another script
 
-`npx blueprint run` or `yarn blueprint run`
+`npx ts-node ./scripts/deploySignin.ts`
 
-### Add a new contract
+### Use
 
-`npx blueprint create ContractName` or `yarn blueprint create ContractName`
+`npx ts-node ./scripts/sendSignIn.ts`
+
+`npx ts-node ./scripts/getUserSignIn.ts`
+
+`npx ts-node ./scripts/checkUserSignIn.ts `
