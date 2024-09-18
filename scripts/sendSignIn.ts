@@ -19,11 +19,11 @@ export async function run() {
     const walletSender = walletContract.sender(key.secretKey);
     const seqno = await walletContract.getSeqno();
 
-    const signinAddress = Address.parse("EQBoxUtva6QgYGfksrrJEECQ_bZ1ZwOLSzyLR1K4shmMfxIX");
+    const signinAddress = Address.parse("EQCrqKdmgCc_XS-AxuNJWlh1oZKVkE1OVJqvv1qKlP2w2-Rz");
     const signin = new SignIn(signinAddress);
     const signinContract = client.open(signin);
 
-    await signinContract.sendSignIn(walletSender, 123n, 10000n);
+    await signinContract.sendSignIn(walletSender, 123n, 1000000n);
 
     let currentSeqno = seqno;
     while (currentSeqno == seqno) {

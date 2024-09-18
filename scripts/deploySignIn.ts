@@ -6,6 +6,8 @@ import { mnemonicToWalletKey } from "ton-crypto";
 
 export async function run() {
     const endpoint = await getHttpEndpoint({ network: "testnet" });
+    //const endpoint = "https://go.getblock.io/d7f984e63e0947cdb2cc9696e47efd7b";
+    console.log("endpoint: ", endpoint);
     const client = new TonClient({ endpoint });
 
     const counterCode = Cell.fromBoc(fs.readFileSync("build/sign_in.cell"))[0];

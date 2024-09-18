@@ -10,7 +10,7 @@ export async function run() {
     const signin = new SignIn(signinAddress);
     const signinContract = client.open(signin);
 
-    const signinValue = await signinContract.getUserSignInState(1000000n);
+    const signinValue = await signinContract.getUserSignInHistory(1000000n, 19984n);
     console.log("value: ", signinValue.toString());
 }
 
