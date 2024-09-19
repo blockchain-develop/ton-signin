@@ -18,28 +18,28 @@ cell load_data() inline {
     }
     int op = in_msg_body~load_uint(32);
     int query_id = in_msg_body~load_uint(64);
-    int user_id = in_msg_body~load_uint(256); ;; hash(uint256)
+    int user_id = in_msg_body~load_uint(256); ;; hash,uint256
     int now = now() / (24 * 60 * 60); ;; day
 
     cell data = get_data();
     slice ds = data.begin_parse();
     cell dic = ds.slice_bits() == 0 ? new_dict() : data;
     
-    int user_signin_latest = 0;
-    int user_signin_counter = 0;
+    int user_checkin_counter = 0;
+    int user_checkin_latest = 0;
     (slice payload, int success) = dic.udict_get?(256, user_id);
     if (success) {
-        user_signin_counter = payload~load_uint(64);
-        user_signin_latest = payload~load_uint(64);
+        user_checkin_counter = payload~load_uint(64);
+        user_checkin_latest = payload~load_uint(64);
     }
-    throw_unless(98, user_signin_latest < now); ;; only signin once per day
+    throw_unless(98, user_checkin_latest < now); ;; only checkin once per day
 
-    user_signin_counter += 1;
-    user_signin_latest = now;
-    cell user_state = begin_cell().store_uint(user_signin_counter, 64).store_uint(user_signin_latest, 64).end_cell();
-    cell user_signin_history = begin_cell().store_uint(user_id, 256).store_uint(user_signin_latest, 64).end_cell();
+    user_checkin_counter += 1;
+    user_checkin_latest = now;
+    cell user_state = begin_cell().store_uint(user_checkin_counter, 64).store_uint(user_checkin_latest, 64).end_cell();
+    cell user_checkin_history = begin_cell().store_uint(user_id, 256).store_uint(user_checkin_latest, 64).end_cell();
     dic~udict_set(256, user_id, user_state.begin_parse());
-    dic~udict_set(256, cell_hash(user_signin_history), begin_cell().store_uint(1, 8).end_cell().begin_parse());
+    dic~udict_set(256, cell_hash(user_checkin_history), begin_cell().store_uint(1, 8).end_cell().begin_parse());
     set_data(dic);
 
     ;; refund ton
@@ -64,22 +64,22 @@ cell load_data() inline {
     return();
 }
 
-(int, int) get_user_signin(int user_id) method_id {
+(int, int) get_user_checkin(int user_id) method_id {
     cell dic = load_data();
     (slice payload, int success) = dic.udict_get?(256, user_id);
     if (success) {
-        int user_signin_counter = payload~load_uint(64);
-        int user_signin_latest = payload~load_uint(64);
-        return (user_signin_counter, user_signin_latest);
+        int user_checkin_counter = payload~load_uint(64);
+        int user_checkin_latest = payload~load_uint(64);
+        return (user_checkin_counter, user_checkin_latest);
     } else {
         return (0, 0);
     }
 }
 
-(int) check_user_signin(int user_id, int day) method_id {
+(int) check_user_checkin(int user_id, int day) method_id {
     cell dic = load_data();
-    cell user_signin_history = begin_cell().store_uint(user_id, 256).store_uint(day, 64).end_cell();
-     (_, int success) = dic.udict_get?(256, cell_hash(user_signin_history));
+    cell user_checkin_history = begin_cell().store_uint(user_id, 256).store_uint(day, 64).end_cell();
+     (_, int success) = dic.udict_get?(256, cell_hash(user_checkin_history));
     if (success) {
        return 1;
     } else {

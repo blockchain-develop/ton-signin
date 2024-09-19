@@ -1,17 +1,17 @@
 import { getHttpEndpoint } from "@orbs-network/ton-access";
 import { TonClient, Address } from "@ton/ton";
-import { SignIn } from "../wrappers/SignIn";
+import { CheckIn } from "../wrappers/CheckIn";
 
 export async function run() {
     const endpoint = await getHttpEndpoint({ network: "testnet" });
     const client = new TonClient({ endpoint });
 
-    const signinAddress = Address.parse("EQCrqKdmgCc_XS-AxuNJWlh1oZKVkE1OVJqvv1qKlP2w2-Rz");
-    const signin = new SignIn(signinAddress);
-    const signinContract = client.open(signin);
+    const checinAddress = Address.parse("EQAs_EadsWk2-giRLkOkQwy5uO9GXVBLO3xfxuuo1QCRScEW");
+    const checkin = new CheckIn(checinAddress);
+    const checkinContract = client.open(checkin);
 
-    const signinValue = await signinContract.getUserSignInState(1000000n);
-    console.log("value: ", signinValue.toString());
+    const checkinValue = await checkinContract.getUserCheckInState(1000000n);
+    console.log("value: ", checkinValue.toString());
 }
 
 // We recommend this pattern to be able to use async/await everywhere

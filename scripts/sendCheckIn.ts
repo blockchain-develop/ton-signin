@@ -1,21 +1,12 @@
-import * as fs from "fs";
-import { SignIn } from '../wrappers/SignIn';
-import { getHttpEndpoint } from '@orbs-network/ton-access';
-import { TonClient, Cell, WalletContractV4 } from '@ton/ton';
+import { getHttpEndpoint } from "@orbs-network/ton-access";
 import { mnemonicToWalletKey } from "ton-crypto";
+import { TonClient, WalletContractV4, Address } from "@ton/ton";
+import { CheckIn } from "../wrappers/CheckIn";
+
 
 export async function run() {
     const endpoint = await getHttpEndpoint({ network: "testnet" });
-    console.log("endpoint: ", endpoint);
     const client = new TonClient({ endpoint });
-
-    const counterCode = Cell.fromBoc(fs.readFileSync("build/sign_in.cell"))[0];
-    const sign_in = SignIn.createForDeploy(counterCode);
-
-    console.log("contract address: ", sign_in.address.toString());
-    if (await client.isContractDeployed(sign_in.address)) {
-        return console.log("sign in alread deployed");
-    }
 
     const mnemonic = "best wild client roof marble core current property surface zebra have fortune neutral away wolf tag prize flavor garment tip era auction miss nothing";
     const key = await mnemonicToWalletKey(mnemonic.split(" "));
@@ -28,16 +19,19 @@ export async function run() {
     const walletSender = walletContract.sender(key.secretKey);
     const seqno = await walletContract.getSeqno();
 
-    const signInContract = client.open(sign_in);
-    await signInContract.sendDeploy(walletSender);
+    const checkinAddress = Address.parse("EQAs_EadsWk2-giRLkOkQwy5uO9GXVBLO3xfxuuo1QCRScEW");
+    const checkin = new CheckIn(checkinAddress);
+    const checkinContract = client.open(checkin);
+
+    await checkinContract.sendCheckIn(walletSender, 123n, 1000000n);
 
     let currentSeqno = seqno;
     while (currentSeqno == seqno) {
-        console.log("waiting for deploy transaction to confirm......");
+        console.log("waiting for transaction to confirm...");
         await sleep(1500);
         currentSeqno = await walletContract.getSeqno();
     }
-    console.log("deploy transaction confirmed!");
+    console.log("transaction confirmed!");
 }
 
 function sleep(ms: number) {

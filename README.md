@@ -1,4 +1,4 @@
-# signin
+# checkin
 
 ## Project structure
 
@@ -11,16 +11,16 @@
 
 ### Build
 
-`npx func-js contracts/sign_in.fc --boc build/sign_in.cell`
+`npx func-js contracts/check_in.fc --boc build/check_in.cell`
 
-### Deploy or run another script
+### Deploy
 
-`npx ts-node ./scripts/deploySignin.ts`
+`npx ts-node ./scripts/deployCheckIn.ts`
 
 ### Use
 
-`npx ts-node ./scripts/sendSignIn.ts`
+`npx ts-node ./scripts/sendCheckIn.ts`
 
-`npx ts-node ./scripts/getUserSignIn.ts`
+`npx ts-node ./scripts/getUserCheckIn.ts`
 
-`npx ts-node ./scripts/checkUserSignIn.ts `
+`npx ts-node ./scripts/checkUserCheckIn.ts`
